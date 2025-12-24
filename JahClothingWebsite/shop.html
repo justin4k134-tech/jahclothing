@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JahClothing - Shop</title>
+<style>
+  body { font-family: Arial; margin:0; padding:0; background:#f9f9f9; }
+  header { background:#000; color:#fff; padding:20px; text-align:center; }
+  nav a { color:#fff; margin: 0 15px; text-decoration:none; font-weight:bold; }
+  .products { display:flex; flex-wrap:wrap; justify-content:center; gap:20px; padding:20px; }
+  .product { background:#fff; padding:10px; border-radius:8px; text-align:center; width:200px; box-shadow:0 0 10px rgba(0,0,0,0.1); position:relative; }
+  .product img { width:100%; height:200px; object-fit:cover; border-radius:5px; }
+  .sizes { margin:10px 0; }
+  .sizes button { margin:2px; padding:5px 10px; border:1px solid #000; border-radius:5px; cursor:pointer; background:#fff; }
+  .product button.add, .product button.buy { margin-top:5px; padding:10px; width:90%; border:none; border-radius:5px; cursor:pointer; }
+  .product button.add { background:#000; color:#fff; }
+  .product button.buy { background:#0070ba; color:#fff; }
+  .stock-info { font-weight:bold; margin:5px 0; color:#333; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>JahClothing</h1>
+  <nav>
+    <a href="index.html">Home</a>
+    <a href="shop.html">Shop</a>
+    <a href="cart.html">Cart</a>
+    <a href="checkout.html">Checkout</a>
+  </nav>
+</header>
+
+<div class="products">
+  <!-- Product 1: Beyond Limits 32 2 piece -->
+  <div class="product" data-sizes="8Y,9Y,10Y,11Y,12Y" data-stock="5">
+    <img src="images/1a1ed2ed-a335-4073-9937-d7c25cdf0093.jpg" alt="Beyond Limits 32 2 piece">
+    <h3>Beyond Limits 32 2 piece</h3>
+    <p>$30.00</p>
+    <p class="stock-info">Stock: 5</p>
+    <div class="sizes"></div>
+    <button class="add" onclick="addToCart('Beyond Limits 32 2 piece',30,this)">Add to Cart</button>
+    <button class="buy" onclick="buyNow('Beyond Limits 32 2 piece',30,this)">Buy Now</button>
+  </div>
+
+  <!-- Product 2: Demon Child Short -->
+  <div class="product" data-sizes="S,M,L,XL,XXL" data-stock="10">
+    <img src="images/7f4b01b1-aaa0-4ecb-a274-2eb0cc1742cb.jpg" alt="Demon Child Short">
+    <h3>Demon Child Short</h3>
+    <p>$25.00</p>
+    <p class="stock-info">Stock: 10</p>
+    <div class="sizes"></div>
+    <button class="add" onclick="addToCart('Demon Child Short',25,this)">Add to Cart</button>
+    <button class="buy" onclick="buyNow('Demon Child Short',25,this)">Buy Now</button>
+  </div>
+
+  <!-- Product 3: Smilling Wear 2 Piece Fit (no stock limit) -->
+  <div class="product" data-sizes="S,M,L">
+    <img src="images/smilling_wear_2piece.png" alt="Smilling Wear 2 Piece Fit">
+    <h3>Smilling Wear 2 Piece Fit</h3>
+    <p>$35.00</p>
+    <div class="sizes"></div>
+    <button class="add" onclick="addToCart('Smilling Wear 2 Piece Fit',35,this)">Add to Cart</button>
+    <button class="buy" onclick="buyNow('Smilling Wear 2 Piece Fit',35,this)">Buy Now</button>
+  </div>
+</div>
+
+<script>
+  // Generate size buttons for each product based on available sizes
+  document.querySelectorAll('.product').forEach(product => {
+    const sizesDiv = product.querySelector('.sizes');
+    const availableSizes = product.dataset.sizes ? product.dataset.sizes.split(',') : ['S','M','L'];
+    availableSizes.forEach(size => {
+      const btn = document.createElement('button');
+      btn.innerText = size;
+      btn.onclick = function() { selectSize(this); };
+      sizesDiv.appendChild(btn);
+    });
+  });
+
+  // Track selected size per product
+  let selectedSize = "";
+
+  function selectSize(btn){
+    selectedSize = btn.innerText;
+    const siblings = btn.parentElement.querySelectorAll("button");
+    siblings.forEach(b => { b.style.backgroundColor = "#fff"; b.style.color="#000"; });
+    btn.style.backgroundColor = "#000";
+    btn.style.color = "#fff";
+  }
+
+  function addToCart(name, price, btn){
+    const productDiv = btn.closest('.product');
+    let stock = parseInt(productDiv.dataset.stock || 9999);
+
+    if(stock <= 0){
+      alert("Out of stock!");
+      return;
+    }
+
+    if(!selectedSize){
+      alert("Please select a size!");
+      return;
+    }
+
+    let cart = JSON.parse(localStorage.getItem('cart')) || [];
+    cart.push({name:name, price:price, size:selectedSize});
+    localStorage.setItem('cart', JSON.stringify(cart));
+
+    if(productDiv.dataset.stock){
+      stock -= 1;
+      productDiv.dataset.stock = stock;
+      productDiv.querySelector('.stock-info').innerText = "Stock: " + stock;
+      if(stock <= 0){
+        productDiv.querySelectorAll("button").forEach(b => b.disabled = true);
+      }
+    }
+
+    alert(name + " (" + selectedSize + ") added to cart!");
+  }
+
+  function buyNow(name, price, btn){
+    const productDiv = btn.closest('.product');
+    let stock = parseInt(productDiv.dataset.stock || 9999);
+
+    if(stock <= 0){
+      alert("Out of stock!");
+      return;
+    }
+
+    if(!selectedSize){
+      alert("Please select a size!");
+      return;
+    }
+
+    localStorage.setItem('buyNow', JSON.stringify([{name:name, price:price, size:selectedSize}]));
+
+    if(productDiv.dataset.stock){
+      stock -= 1;
+      productDiv.dataset.stock = stock;
+      productDiv.querySelector('.stock-info').innerText = "Stock: " + stock;
+      if(stock <= 0){
+        productDiv.querySelectorAll("button").forEach(b => b.disabled = true);
+      }
+    }
+
+    window.location.href = 'checkout.html';
+  }
+</script>
+
+</body>
+</html>
